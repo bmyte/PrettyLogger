@@ -5,7 +5,7 @@ import org.tinylog.core.LogEntry
 import org.tinylog.core.LogEntryValue
 import org.tinylog.writers.AbstractFormatPatternWriter
 
-class SpectralConsoleWriter(private val properties: Map<String, String>) : AbstractFormatPatternWriter(properties) {
+class SpectralConsoleWriter(properties: Map<String, String>) : AbstractFormatPatternWriter(properties) {
 
     private val dateColor = ConsoleColor.valueOf(properties["color.date"] ?: "WHITE")
     private val traceLevelColor = ConsoleColor.valueOf(properties["color.level.trace"] ?: "WHITE")
@@ -25,23 +25,24 @@ class SpectralConsoleWriter(private val properties: Map<String, String>) : Abstr
 
     override fun write(logEntry: LogEntry) {
         val rendered = render(logEntry)
-        val split = rendered.split(" ")
+        val parts = rendered.split(" ")
         val builder = StringBuilder()
-        builder.append(split[0].colorize(dateColor) + " ")
+        builder.append(parts[0].colorize(dateColor) + " ")
+
+        builder.append(parts[1].replace("module", module).colorize(moduleColor) + " ")
 
         when(logEntry.level) {
-            Level.TRACE -> builder.append(split[1].colorize(traceLevelColor) + " ")
-            Level.DEBUG -> builder.append(split[1].colorize(debugLevelColor) + " ")
-            Level.INFO -> builder.append(split[1].colorize(infoLevelColor) + " ")
-            Level.WARN -> builder.append(split[1].colorize(warningLevelColor) + " ")
-            Level.ERROR -> builder.append(split[1].colorize(errorLevelColor) + " ")
-            else -> builder.append(split[1].colorize(ConsoleColor.RESET) + " ")
+            Level.TRACE -> builder.append(parts[2].colorize(traceLevelColor))
+            Level.DEBUG -> builder.append(parts[2].colorize(debugLevelColor))
+            Level.INFO -> builder.append(parts[2].colorize(infoLevelColor))
+            Level.WARN -> builder.append(parts[2].colorize(warningLevelColor))
+            Level.ERROR -> builder.append(parts[2].colorize(errorLevelColor))
+            else -> builder.append(parts[2].colorize(ConsoleColor.RESET))
         }
 
-        builder.append("($module)".colorize(moduleColor) + " ")
-
         if(logEntry.level == Level.ERROR) {
-            val message = split.subList(3, split.size).joinToString(" ")
+            builder.append(": ")
+            val message = parts.subList(3, parts.size).joinToString(" ")
             if(logEntry.exception != null) {
                 builder.append(message.substring(0, message.indexOf(": ")).colorize(ConsoleColor.DARK_RED) + NEW_LINE)
                 builder.append(message.substring(message.indexOf(": ") + 1).colorize(ConsoleColor.RESET))
@@ -49,7 +50,8 @@ class SpectralConsoleWriter(private val properties: Map<String, String>) : Abstr
                 builder.append(message.colorize(ConsoleColor.DARK_RED))
             }
         } else {
-            builder.append(split.subList(3, split.size).joinToString(" ").colorize(messageColor))
+            builder.append(": ".colorize(ConsoleColor.RESET))
+            builder.append(parts.subList(3, parts.size).joinToString(" ").colorize(messageColor))
         }
 
         print(builder.toString())

@@ -10,7 +10,7 @@ class SpectralLoggerConfigurationLoader : ConfigurationLoader {
         val properties = Properties()
 
         properties["writer"] = "spectral console"
-        properties["writer.format"] = "[{date:HH:mm:ss}] [{thread}/{level}] ({module}): {message}"
+        properties["writer.format"] = "[{date:HH:mm:ss}] (module) [{thread}/{level}] {message}"
         properties["writer.module"] = "Logger"
         properties["writer.level"] = "TRACE"
         properties["writer.color.date"] = "DARK_BLUE"
